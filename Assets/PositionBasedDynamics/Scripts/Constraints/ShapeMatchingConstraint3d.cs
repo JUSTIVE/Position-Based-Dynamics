@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 
 using Common.Mathematics.LinearAlgebra;
-
+using Common.Unity.Mathematics;
 using PositionBasedDynamics.Bodies;
+using UnityEngine;
 
 namespace PositionBasedDynamics.Constraints
 {
@@ -13,9 +14,9 @@ namespace PositionBasedDynamics.Constraints
 
         private Matrix3x3d InvRestMatrix;
 
-        private Vector3d RestCm;
+        private Vector3 RestCm;
 
-        private Vector3d[] RestPositions;
+        private Vector3[] RestPositions;
 
         private double Stiffness;
 
@@ -23,25 +24,25 @@ namespace PositionBasedDynamics.Constraints
         {
             Stiffness = stiffness;
             InvRestMatrix = Matrix3x3d.Identity;
-            RestCm = Vector3d.Zero;
+            RestCm = Vector3.zero;
             double wsum = 0.0;
             int numParticles = Body.NumParticles;
 
             for (int i = 0; i < numParticles; i++)
             {
-                RestCm += Body.Positions[i] * mass;
+                RestCm += Body.Positions[i] * (float)mass;
                 wsum += mass;
             }
 
-            RestCm /= wsum;
+            RestCm /= (float)wsum;
 
             Matrix3x3d A = new Matrix3x3d();
 
-            RestPositions = new Vector3d[numParticles];
+            RestPositions = new Vector3[numParticles];
 
             for (int i = 0; i < numParticles; i++)
             {
-                Vector3d q = Body.Positions[i] - RestCm;
+                Vector3 q = Body.Positions[i] - RestCm;
 
                 A[0, 0] += mass * q.x * q.x;
                 A[0, 1] += mass * q.x * q.y;
@@ -64,26 +65,26 @@ namespace PositionBasedDynamics.Constraints
 
         internal override void ConstrainPositions(double di)
         {
-     
-            Vector3d cm = new Vector3d(0.0, 0.0, 0.0);
+
+            Vector3 cm = Vector3.zero;
             double wsum = 0.0;
             double mass = Body.ParticleMass;
             int numParticles = Body.NumParticles;
 
             for (int i = 0; i < numParticles; i++)
             {
-                cm += Body.Predicted[i] * mass;
+                cm += Body.Predicted[i] * (float)mass;
                 wsum += mass;
             }
 
-            cm /= wsum;
+            cm /= (float)wsum;
 
             Matrix3x3d A = new Matrix3x3d();
 
             for (int i = 0; i < numParticles; i++)
             {
-                Vector3d q = RestPositions[i];
-                Vector3d p = Body.Positions[i] - cm;
+                Vector3 q = RestPositions[i];
+                Vector3 p = Body.Positions[i] - cm;
 
                 A[0, 0] += mass * p.x * q.x;
                 A[0, 1] += mass * p.x * q.y;
@@ -111,8 +112,8 @@ namespace PositionBasedDynamics.Constraints
 
             for (int i = 0; i < numParticles; i++)
             {
-                Vector3d goal = cm + R * RestPositions[i];
-                Body.Predicted[i] += (goal - Body.Predicted[i]) * Stiffness * di;
+                Vector3 goal = cm + MathConverter.ToVector3(R * new Vector3d(RestPositions[i]));
+                Body.Predicted[i] += (goal - Body.Predicted[i]) * (float)Stiffness * (float)di;
             }
         }
 

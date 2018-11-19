@@ -46,8 +46,8 @@ namespace PositionBasedDynamics
             double mass = 1.0;
             System.Random rnd = new System.Random(0);
   
-            Vector3d min = new Vector3d(-5.0, -1.0, -0.5);
-            Vector3d max = new Vector3d(5.0, 1.0, 0.5);
+            Vector3 min = new Vector3(-5.0f, -1.0f, -0.5f);
+            Vector3 max = new Vector3(5.0f, 1.0f, 0.5f);
             Box3d bounds = new Box3d(min, max);
             TetrahedronsFromBounds source = new TetrahedronsFromBounds(radius, bounds);
  
@@ -56,15 +56,15 @@ namespace PositionBasedDynamics
             Body.RandomizePositions(rnd, radius * 0.01);
             Body.RandomizeConstraintOrder(rnd);
 
-            Vector3d smin = new Vector3d(min.x, min.y + 6.0, min.z-0.1);
-            Vector3d smax = new Vector3d(min.x+0.5, max.y + 6.0, max.z + 0.1);
+            Vector3 smin = new Vector3(min.x, min.y + 6.0f, min.z-0.1f);
+            Vector3 smax = new Vector3(min.x+0.5f, max.y + 6.0f, max.z + 0.1f);
             StaticBounds = new Box3d(smin, smax);
             Body.MarkAsStatic(StaticBounds);
 
             Solver = new Solver3d();
             Solver.AddBody(Body);
             Solver.AddForce(new GravitationalForce3d());
-            Solver.AddCollision(new PlanarCollision3d(Vector3d.UnitY, 0));
+            Solver.AddCollision(new PlanarCollision3d(Vector3.up, 0));
             Solver.SolverIterations = 2;
             Solver.CollisionIterations = 2;
             Solver.SleepThreshold = 1;
@@ -104,8 +104,8 @@ namespace PositionBasedDynamics
 
                 DrawLines.DrawGrid(camera, Color.white, min, max, 1, transform.localToWorldMatrix);
 
-                Matrix4x4d m = MathConverter.ToMatrix4x4d(transform.localToWorldMatrix);
-                DrawLines.DrawVertices(LINE_MODE.TETRAHEDRON, camera, Color.red, Body.Positions, Body.Indices, m);
+                //Matrix4x4d m = MathConverter.ToMatrix4x4d(transform.localToWorldMatrix);
+                //DrawLines.DrawVertices(LINE_MODE.TETRAHEDRON, camera, Color.red, Body.Positions, Body.Indices, m);
 
                 DrawLines.DrawBounds(camera, Color.green, StaticBounds, Matrix4x4d.Identity);
             }
@@ -122,7 +122,7 @@ namespace PositionBasedDynamics
 
             for (int i = 0; i < numParticles; i++)
             {
-                Vector3 pos = MathConverter.ToVector3(Body.Positions[i]);
+                Vector3 pos = Body.Positions[i];
 
                 GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 sphere.transform.parent = transform;
@@ -142,7 +142,7 @@ namespace PositionBasedDynamics
             {
                 for (int i = 0; i < Spheres.Count; i++)
                 {
-                    Vector3d pos = Body.Positions[i];
+                    Vector3 pos = Body.Positions[i];
                     Spheres[i].transform.position = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
                 }
             }

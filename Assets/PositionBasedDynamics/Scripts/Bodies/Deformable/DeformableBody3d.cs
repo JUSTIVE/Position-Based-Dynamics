@@ -5,6 +5,7 @@ using Common.Mathematics.LinearAlgebra;
 
 using PositionBasedDynamics.Constraints;
 using PositionBasedDynamics.Sources;
+using UnityEngine;
 
 namespace PositionBasedDynamics.Bodies.Deformable
 {
@@ -31,7 +32,7 @@ namespace PositionBasedDynamics.Bodies.Deformable
             for (int i = 0; i < NumParticles; i++)
             {
                 Vector4d pos = RTS * source.Positions[i].xyz1;
-                Positions[i] = new Vector3d(pos.x, pos.y, pos.z);
+                Positions[i] = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
                 Predicted[i] = Positions[i];
             }
 

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-
+using UnityEngine;
 using Common.Mathematics.LinearAlgebra;
 
 namespace Common.Geometry.Shapes
@@ -10,7 +10,7 @@ namespace Common.Geometry.Shapes
     public struct Box3d
     {
 
-        public Vector3d Center { get { return (Min + Max) / 2.0; } }
+        public Vector3 Center { get { return (Min + Max) / 2.0f; } }
 
         public Vector3d Size { get { return new Vector3d(Width, Height, Depth); } }
 
@@ -32,28 +32,28 @@ namespace Common.Geometry.Shapes
         {
             get
             {
-                Vector3d d = Max - Min;
+                Vector3 d = Max - Min;
                 return 2.0 * (d.x * d.y + d.x * d.z + d.y * d.z);
             }
         }
 
-        public Vector3d Min { get; set; }
+        public Vector3 Min { get; set; }
 
-        public Vector3d Max { get; set; }
+        public Vector3 Max { get; set; }
 
         public Box3d(double min, double max)
         {
-            Min = new Vector3d(min);
-            Max = new Vector3d(max);
+            Min = new Vector3((float)min, (float)min, (float)min);
+            Max = new Vector3((float)max, (float)max, (float)max);
         }
 
         public Box3d(double minX, double maxX, double minY, double maxY, double minZ, double maxZ)
         {
-            Min = new Vector3d(minX, minY, minZ);
-            Max = new Vector3d(maxX, maxY, maxZ);
+            Min = new Vector3((float)minX, (float)minY, (float)minZ);
+            Max = new Vector3((float)maxX, (float)maxY, (float)maxZ);
         }
 
-        public Box3d(Vector3d min, Vector3d max)
+        public Box3d(Vector3 min, Vector3 max)
         {
             Min = min;
             Max = max;
@@ -61,8 +61,8 @@ namespace Common.Geometry.Shapes
 
         public Box3d(Vector3i min, Vector3i max)
         {
-            Min = new Vector3d(min.x, min.y, min.z);
-            Max = new Vector3d(max.x, max.y, max.z); ;
+            Min = new Vector3(min.x, min.y, min.z);
+            Max = new Vector3(max.x, max.y, max.z); ;
         }
 
         public Box3d(Box3d box)
@@ -131,7 +131,7 @@ namespace Common.Geometry.Shapes
         /// <summary>
         /// Returns true if this bounding box contains the given point.
         /// </summary>
-        public bool Contains(Vector3d p)
+        public bool Contains(Vector3 p)
         {
             if (p.x > Max.x || p.x < Min.x) return false;
             if (p.y > Max.y || p.y < Min.y) return false;
@@ -178,11 +178,13 @@ namespace Common.Geometry.Shapes
 
         public bool Intersects(Vector3d p1, Vector3d p2)
         {
+            Vector3 p1R = new Vector3((float)p1.x, (float)p1.y, (float)p1.z);
+            Vector3 p2R = new Vector3((float)p2.x, (float)p2.y, (float)p2.z);
 
-            Vector3d d = (p2 - p1) * 0.5;
-            Vector3d e = (Max - Min) * 0.5;
-            Vector3d c = p1 + d - (Min + Max) * 0.5;
-            Vector3d ad = d.Absolute; 
+            Vector3 d = (p2R - p1R) * 0.5f;
+            Vector3 e = (Max - Min) * 0.5f;
+            Vector3 c = p1R + d - (Min + Max) * 0.5f;
+            Vector3 ad = new Vector3(Math.Abs(d.x), Math.Abs(d.y), Math.Abs(d.z)); 
 
             if (Math.Abs(c.x) > e.x + ad.x) return false;
             if (Math.Abs(c.y) > e.y + ad.y) return false;

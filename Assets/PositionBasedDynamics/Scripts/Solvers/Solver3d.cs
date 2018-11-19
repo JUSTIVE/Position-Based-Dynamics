@@ -7,7 +7,7 @@ using PositionBasedDynamics.Forces;
 using PositionBasedDynamics.Constraints;
 using PositionBasedDynamics.Bodies;
 using PositionBasedDynamics.Collisions;
-
+using UnityEngine;
 namespace PositionBasedDynamics.Solvers
 {
 
@@ -24,11 +24,36 @@ namespace PositionBasedDynamics.Solvers
         private List<ExternalForce3d> Forces { get; set; }
 
         private List<Collision3d> Collisions { get; set; }
+        //computeShaders
+        public ComputeShader ApplyExternalForcesShader;
+        public ComputeShader EstimatePositionsShader;
+        public ComputeShader ResolveCollisionsShader;
+        public ComputeShader ConstraintPositionsShader;
+        public ComputeShader UpdateVelocitiesShader;
+        public ComputeShader ConstraintVelocitiesShader;
+        public ComputeShader UpdatePositionsShader;
+        //computeShaderHandles
+        private int applyExternalForcesShaderHandle;
+        private int estimatePositionsShaderHandle;
+        private int resolveCollisionsShaderHandle;
+        private int constraintPositionsShaderHandle;
+        private int updateVelocitiesShaderHandle;
+        private int constraintVelocitiesShaderHandle;
+        private int updatePositionsShaderHandle;
+
+        public bool GPUmode = true;//true for GPU;
+        public void init()
+        {
+            applyExternalForcesShaderHandle = ApplyExternalForcesShader.FindKernel("APPLYEXTERNALFORCE_1");
+            estimatePositionsShaderHandle = EstimatePositionsShader.FindKernel("ESTIMATEPOSITIONS");
+            updatePositionsShaderHandle = UpdatePositionsShader.FindKernel("UPDATEPOSITION");
+            updateVelocitiesShaderHandle = UpdateVelocitiesShader.FindKernel("UPDATEVELOCITIES");
+        }
 
         public Solver3d()
         {
             SolverIterations = 4;
-            CollisionIterations = 2;
+            CollisionIterations = 1;
 
             Forces = new List<ExternalForce3d>();
             Collisions = new List<Collision3d>();
@@ -59,7 +84,7 @@ namespace PositionBasedDynamics.Solvers
 
             AppyExternalForces(dt);
 
-            EstimatePositions(dt);
+            EstimatePositions((float)dt);
 
             UpdateBounds();
 
@@ -77,32 +102,74 @@ namespace PositionBasedDynamics.Solvers
 
         private void AppyExternalForces(double dt)
         {
-
+            ApplyExternalForcesShader.SetFloat("dt", (float)dt);
+            
             for (int j = 0; j < Bodies.Count; j++)
             {
                 Body3d body = Bodies[j];
+                if (GPUmode) { 
+                    ApplyExternalForcesShader.SetInt("numParticles", body.NumParticles);
+                    ApplyExternalForcesShader.SetFloat("damping", (float)body.Dampning);
+                    ApplyExternalForcesShader.SetFloat("gravity",- 9.81f);
 
-                for (int i = 0; i < body.NumParticles; i++)
-                {
-                    body.Velocities[i] -= (body.Velocities[i] * body.Dampning) * dt;
+                    ComputeBuffer velocityComputeBuffer = new ComputeBuffer(12, body.NumParticles);
+                    velocityComputeBuffer.SetData(body.Velocities);
+
+                    ApplyExternalForcesShader.SetBuffer(applyExternalForcesShaderHandle, "Velocities", velocityComputeBuffer);
+                    ApplyExternalForcesShader.Dispatch(applyExternalForcesShaderHandle, (body.NumParticles/ 32)+1, 1, 1);
+
+                    velocityComputeBuffer.GetData(body.Velocities);
+
+                    velocityComputeBuffer.Release();
                 }
+                else { 
+                    for (int i = 0; i < body.NumParticles; i++)
+                    {
+                        body.Velocities[i] -= (body.Velocities[i] * (float)body.Dampning) * (float)dt;
+                    }
 
-                for (int i = 0; i < Forces.Count; i++)
-                {
-                    Forces[i].ApplyForce(dt, body);
+                    for (int i = 0; i < Forces.Count; i++)
+                    {
+                        Forces[i].ApplyForce(dt, body);
+                    }
                 }
             }
         }
 
-        private void EstimatePositions(double dt)
+        private void EstimatePositions(float dt)
         {
+            EstimatePositionsShader.SetFloat("dt", (float)dt);
             for (int j = 0; j < Bodies.Count; j++)
             {
                 Body3d body = Bodies[j];
+                if (GPUmode) {
+                    EstimatePositionsShader.SetInt("numParticles", body.NumParticles);
 
-                for (int i = 0; i < body.NumParticles; i++)
-                {
-                    body.Predicted[i] = body.Positions[i] + dt * body.Velocities[i];
+                    ComputeBuffer predictedComputeBuffer = new ComputeBuffer(16, body.NumParticles);
+                    predictedComputeBuffer.SetData(body.Predicted);
+
+                    ComputeBuffer positionsComputeBuffer = new ComputeBuffer(16, body.NumParticles);
+                    positionsComputeBuffer.SetData(body.Positions);
+
+                    ComputeBuffer velocityComputeBuffer = new ComputeBuffer(16, body.NumParticles);
+                    velocityComputeBuffer.SetData(body.Velocities);
+
+                    EstimatePositionsShader.SetBuffer(estimatePositionsShaderHandle,"Predicted", predictedComputeBuffer);
+                    EstimatePositionsShader.SetBuffer(estimatePositionsShaderHandle, "Positions", positionsComputeBuffer);
+                    EstimatePositionsShader.SetBuffer(estimatePositionsShaderHandle, "Velocities", velocityComputeBuffer);
+
+                    EstimatePositionsShader.Dispatch(estimatePositionsShaderHandle, (body.NumParticles/ 32)+1, 1, 1);
+                    predictedComputeBuffer.GetData(body.Predicted);
+
+                    predictedComputeBuffer.Release();
+                    positionsComputeBuffer.Release();
+                    velocityComputeBuffer.Release();
+                }
+                else { 
+                    for (int i = 0; i < body.NumParticles; i++)
+                    {
+                        body.Predicted[i] = body.Positions[i] + dt * body.Velocities[i];
+                    }
                 }
             }
         }
@@ -154,18 +221,48 @@ namespace PositionBasedDynamics.Solvers
             double threshold2 = SleepThreshold * dt;
             threshold2 *= threshold2;
 
+            UpdateVelocitiesShader.SetFloat("invDt", (float)invDt);
+            UpdateVelocitiesShader.SetFloat("threshold2", (float)threshold2);
+
             for (int j = 0; j < Bodies.Count; j++)
             {
                 Body3d body = Bodies[j];
 
-                for (int i = 0; i < body.NumParticles; i++)
+                if (GPUmode)
                 {
-                    Vector3d d = body.Predicted[i] - body.Positions[i];
-                    body.Velocities[i] = d * invDt;
+                    UpdateVelocitiesShader.SetInt("numParticles", body.NumParticles);
+                    ComputeBuffer predictedComputeBuffer = new ComputeBuffer(12, body.NumParticles);
+                    predictedComputeBuffer.SetData(body.Predicted);
 
-                    double m = body.Velocities[i].SqrMagnitude;
-                    if (m < threshold2)
-                        body.Velocities[i] = Vector3d.Zero;
+                    ComputeBuffer positionComputeBuffer = new ComputeBuffer(12, body.NumParticles);
+                    positionComputeBuffer.SetData(body.Positions);
+
+                    ComputeBuffer velocityComputeBuffer = new ComputeBuffer(12, body.NumParticles);
+                    velocityComputeBuffer.SetData(body.Velocities);
+
+                    UpdateVelocitiesShader.SetBuffer(updateVelocitiesShaderHandle,"Predicted",predictedComputeBuffer);
+                    UpdateVelocitiesShader.SetBuffer(updateVelocitiesShaderHandle, "Positions", positionComputeBuffer);
+                    UpdateVelocitiesShader.SetBuffer(updateVelocitiesShaderHandle, "Velocities", velocityComputeBuffer);
+
+                    UpdateVelocitiesShader.Dispatch(updateVelocitiesShaderHandle, (body.NumParticles / 32) + 1, 1, 1);
+
+                    velocityComputeBuffer.GetData(body.Velocities);
+
+                    velocityComputeBuffer.Release();
+                    positionComputeBuffer.Release();
+                    predictedComputeBuffer.Release();
+
+                }
+                else { 
+                    for (int i = 0; i < body.NumParticles; i++)
+                    {
+                        Vector3 d = body.Predicted[i] - body.Positions[i];
+                        body.Velocities[i] = d * (float)invDt;
+
+                        double m = body.Velocities[i].sqrMagnitude;
+                        if (m < threshold2)
+                            body.Velocities[i] = Vector3.zero;
+                    }
                 }
             }
         }
@@ -184,9 +281,32 @@ namespace PositionBasedDynamics.Solvers
             {
                 Body3d body = Bodies[j];
 
-                for (int i = 0; i < body.NumParticles; i++)
+                if (GPUmode)
                 {
-                    body.Positions[i] = body.Predicted[i];
+                    UpdatePositionsShader.SetInt("numParticles", body.NumParticles);
+                
+                    ComputeBuffer predictedComputeBuffer = new ComputeBuffer(12, body.NumParticles);
+                    predictedComputeBuffer.SetData(body.Predicted);
+
+                    ComputeBuffer positionComputeBuffer = new ComputeBuffer(12, body.NumParticles);
+                    positionComputeBuffer.SetData(body.Positions);
+
+                    UpdatePositionsShader.SetBuffer(updatePositionsShaderHandle, "Predicted", predictedComputeBuffer);
+                    UpdatePositionsShader.SetBuffer(updatePositionsShaderHandle, "Positions", positionComputeBuffer);
+
+                    UpdatePositionsShader.Dispatch(updatePositionsShaderHandle, (body.NumParticles/32)+1, 1, 1);
+
+                    positionComputeBuffer.GetData(body.Positions);
+
+                    predictedComputeBuffer.Dispose();
+                    positionComputeBuffer.Dispose();
+                }
+                else
+                {
+                    for (int i = 0; i < body.NumParticles; i++)
+                    {
+                        body.Positions[i] = body.Predicted[i];
+                    }
                 }
             }
         }

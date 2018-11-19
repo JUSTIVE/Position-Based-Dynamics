@@ -7,6 +7,7 @@ using Common.Mathematics.LinearAlgebra;
 using PositionBasedDynamics.Forces;
 using PositionBasedDynamics.Bodies;
 using PositionBasedDynamics.Bodies.Fluids;
+using UnityEngine;
 
 namespace PositionBasedDynamics.Solvers
 {
@@ -51,7 +52,7 @@ namespace PositionBasedDynamics.Solvers
         {
             for (int i = 0; i < Body.NumParticles; i++)
             {
-                Body.Velocities[i] -= (Body.Velocities[i] * Body.Dampning) * dt;
+                Body.Velocities[i] -= (Body.Velocities[i] * (float)Body.Dampning) * (float)dt;
             }
 
             for (int i = 0; i < Forces.Count; i++)
@@ -64,7 +65,7 @@ namespace PositionBasedDynamics.Solvers
         {
             for (int i = 0; i < Body.NumParticles; i++)
             {
-                Body.Predicted[i] = Body.Positions[i] + dt * Body.Velocities[i];
+                Body.Predicted[i] = Body.Positions[i] + (float)dt * Body.Velocities[i];
             }
         }
 
@@ -79,8 +80,8 @@ namespace PositionBasedDynamics.Solvers
 
             for (int i = 0; i < Body.NumParticles; i++)
             {
-                Vector3d d = Body.Predicted[i] - Body.Positions[i];
-                Body.Velocities[i] = d * inv_dt;
+                Vector3 d = Body.Predicted[i] - Body.Positions[i];
+                Body.Velocities[i] = d * (float)inv_dt;
             }
         }
 

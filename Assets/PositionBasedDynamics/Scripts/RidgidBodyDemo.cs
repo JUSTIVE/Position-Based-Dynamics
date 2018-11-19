@@ -38,8 +38,8 @@ namespace PositionBasedDynamics
             double mass = 1.0;
             System.Random rnd = new System.Random(0);
 
-            Vector3d min = new Vector3d(-1.0);
-            Vector3d max = new Vector3d(1.0);
+            Vector3 min = new Vector3(-1,-1,-1);
+            Vector3 max = new Vector3(1,1,1);
             Box3d bounds = new Box3d(min, max);
 
             ParticlesFromBounds source = new ParticlesFromBounds(spacing, bounds);
@@ -54,7 +54,7 @@ namespace PositionBasedDynamics
             Solver = new Solver3d();
             Solver.AddBody(body);
             Solver.AddForce(new GravitationalForce3d());
-            Solver.AddCollision(new PlanarCollision3d(Vector3d.UnitY, 0));
+            Solver.AddCollision(new PlanarCollision3d(Vector3.up, 0));
             Solver.SolverIterations = 2;
             Solver.CollisionIterations = 2;
             Solver.SleepThreshold = 1;
@@ -114,7 +114,7 @@ namespace PositionBasedDynamics
 
                 for (int i = 0; i < numParticles; i++)
                 {
-                    Vector3 pos = MathConverter.ToVector3(body.Positions[i]);
+                    Vector3 pos = body.Positions[i];
 
                     GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                     sphere.transform.parent = transform;
@@ -143,7 +143,7 @@ namespace PositionBasedDynamics
 
                     for (int i = 0; i < spheres.Count; i++)
                     {
-                        Vector3d pos = body.Positions[i];
+                        Vector3 pos = body.Positions[i];
                         spheres[i].transform.position = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
                     }
                 }

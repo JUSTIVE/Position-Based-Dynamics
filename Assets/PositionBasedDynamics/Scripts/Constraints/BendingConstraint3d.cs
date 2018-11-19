@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Common.Mathematics.LinearAlgebra;
 
 using PositionBasedDynamics.Bodies;
+using UnityEngine;
 
 namespace PositionBasedDynamics.Constraints
 {
@@ -25,32 +26,32 @@ namespace PositionBasedDynamics.Constraints
 
             Stiffness = stiffness;
 
-            Vector3d center = (Body.Positions[i0] + Body.Positions[i1] + Body.Positions[i2]) / 3.0;
-            RestLength = (Body.Positions[i2] - center).Magnitude;
+            Vector3 center = (Body.Positions[i0] + Body.Positions[i1] + Body.Positions[i2]) / 3.0f;
+            RestLength = (Body.Positions[i2] - center).magnitude;
         }
 
         internal override void ConstrainPositions(double di)
         {
 
-            Vector3d center = (Body.Predicted[i0] + Body.Predicted[i1] + Body.Predicted[i2]) / 3.0;
+            Vector3 center = (Body.Predicted[i0] + Body.Predicted[i1] + Body.Predicted[i2]) / 3.0f;
 
-            Vector3d dirCenter = Body.Predicted[i2] - center;
+            Vector3 dirCenter = Body.Predicted[i2] - center;
 
-            double distCenter = dirCenter.Magnitude;
+            double distCenter = dirCenter.magnitude;
             double diff = 1.0 - (RestLength / distCenter);
             double mass = Body.ParticleMass;
 
             double w = mass + mass * 2.0f + mass;
 
-            Vector3d dirForce = dirCenter * diff;
+            Vector3 dirForce = dirCenter * (float)diff;
 
-            Vector3d fa = Stiffness * (2.0 * mass / w) * dirForce * di;
+            Vector3 fa = (float)Stiffness * (float)(2.0f * mass / w) * dirForce * (float)di;
             Body.Predicted[i0] += fa;
 
-            Vector3d fb = Stiffness * (2.0 * mass / w) * dirForce * di;
+            Vector3 fb = (float)Stiffness * (float)(2.0f * mass / w) * dirForce * (float)di;
             Body.Predicted[i1] += fb;
 
-            Vector3d fc = -Stiffness * (4.0 * mass / w) * dirForce * di;
+            Vector3 fc = (float)-Stiffness * (float)(4.0f * mass / w) * dirForce * (float)di;
             Body.Predicted[i2] += fc;
 
         }

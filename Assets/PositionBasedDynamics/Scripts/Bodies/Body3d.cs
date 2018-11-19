@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using UnityEngine;
 using Common.Mathematics.LinearAlgebra;
 using Common.Geometry.Shapes;
 
@@ -23,11 +23,11 @@ namespace PositionBasedDynamics.Bodies
 
         public double ParticleMass { get; protected set; }
 
-        public Vector3d[] Positions { get; private set; }
+        public Vector3[] Positions { get; private set; }
 
-        public Vector3d[] Predicted { get; private set; }
+        public Vector3[] Predicted { get; private set; }
 
-        public Vector3d[] Velocities { get; private set; }
+        public Vector3[] Velocities { get; private set; }
 
         public Box3d Bounds { get; private set; }
 
@@ -37,9 +37,9 @@ namespace PositionBasedDynamics.Bodies
 
         public Body3d(int numParticles, double radius, double mass)
         {
-            Positions = new Vector3d[numParticles];
-            Predicted = new Vector3d[numParticles];
-            Velocities = new Vector3d[numParticles];
+            Positions = new Vector3[numParticles];
+            Predicted = new Vector3[numParticles];
+            Velocities = new Vector3[numParticles];
             Constraints = new List<Constraint3d>();
             StaticConstraints = new List<StaticConstraint3d>();
 
@@ -82,7 +82,7 @@ namespace PositionBasedDynamics.Bodies
 
         }
 
-        public void RandomizePositions(Random rnd, double amount)
+        public void RandomizePositions(System.Random rnd, double amount)
         {
             for(int i = 0; i < NumParticles; i++)
             {
@@ -90,11 +90,11 @@ namespace PositionBasedDynamics.Bodies
                 double ry = rnd.NextDouble() * 2.0 - 1.0;
                 double rz = rnd.NextDouble() * 2.0 - 1.0;
 
-                Positions[i] += new Vector3d(rx, ry, rz) * amount;
+                Positions[i] += new Vector3((float)rx, (float)ry, (float)rz) * (float)amount;
             }
         }
 
-        public void RandomizeConstraintOrder(Random rnd)
+        public void RandomizeConstraintOrder(System.Random rnd)
         {
             int count = Constraints.Count;
             if (count <= 1) return;
@@ -125,17 +125,27 @@ namespace PositionBasedDynamics.Bodies
 
         public void UpdateBounds()
         {
-            Vector3d min = new Vector3d(double.PositiveInfinity);
-            Vector3d max = new Vector3d(double.NegativeInfinity);
+            Vector3 min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+            Vector3 max = new Vector3(float.MinValue, float.MinValue, float.MinValue);
 
             for (int i = 0; i < NumParticles; i++)
             {
-                min.Min(Positions[i]);
-                max.Max(Positions[i]);
+                min.x = min.x < Positions[i].x ? min.x : Positions[i].x;
+                min.y = min.y < Positions[i].y ? min.y : Positions[i].y;
+                min.z = min.z < Positions[i].z ? min.z : Positions[i].z;
+
+                max.x = max.x > Positions[i].x ? max.x : Positions[i].x;
+                max.y = max.y > Positions[i].y ? max.y : Positions[i].y;
+                max.z = max.z > Positions[i].z ? max.z : Positions[i].z;
             }
 
-            min -= ParticleRadius;
-            max += ParticleRadius;
+            min.x -= (float)ParticleRadius;
+            min.y -= (float)ParticleRadius;
+            min.z -= (float)ParticleRadius;
+
+            max.x += (float)ParticleRadius;
+            max.y += (float)ParticleRadius;
+            max.z += (float)ParticleRadius;
 
             Bounds = new Box3d(min, max);
         }

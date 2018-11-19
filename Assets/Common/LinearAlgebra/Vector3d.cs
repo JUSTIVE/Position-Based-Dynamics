@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using UnityEngine;
 
 namespace Common.Mathematics.LinearAlgebra
 {
@@ -92,6 +93,12 @@ namespace Common.Mathematics.LinearAlgebra
 			y = v.y; 
 			this.z = z;
 		}
+        public Vector3d(Vector3 v)
+        {
+            x = v.x;
+            y = v.y;
+            z = v.z;
+        }
 
         public double this[int i]
         {

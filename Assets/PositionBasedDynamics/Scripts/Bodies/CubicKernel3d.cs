@@ -1,7 +1,7 @@
 using System;
 
 using Common.Mathematics.LinearAlgebra;
-
+using UnityEngine;
 namespace PositionBasedDynamics.Bodies
 {
 
@@ -85,26 +85,26 @@ namespace PositionBasedDynamics.Bodies
 
         }
 
-        public Vector3d GradW(Vector3d r)
+        public Vector3 GradW(Vector3 r)
         {
 
-            Vector3d res = Vector3d.Zero;
-            double rl = r.Magnitude;
+            Vector3 res = Vector3.zero;
+            double rl = r.magnitude;
             double q = rl / Radius;
 
             if (q <= 1.0)
             {
                 if (rl > 1.0e-6)
                 {
-                    Vector3d gradq = r * (1.0 / (rl * Radius));
+                    Vector3 gradq = r * (float)(1.0f / ((float)rl * Radius));
                     if (q <= 0.5f)
                     {
-                        res = L * q * (3.0 * q - 2.0) * gradq;
+                        res = (float)L * (float)q * (float)(3.0 * q - 2.0) * gradq;
                     }
                     else
                     {
                         double factor = 1.0 - q;
-                        res = L * (-factor * factor) * gradq;
+                        res = (float)L * (float)(-factor * factor) * gradq;
                     }
                 }
             }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Common.Mathematics.LinearAlgebra;
 
 using PositionBasedDynamics.Bodies;
+using UnityEngine;
 
 namespace PositionBasedDynamics.Constraints
 {
@@ -13,7 +14,7 @@ namespace PositionBasedDynamics.Constraints
 
         private readonly int i0;
 
-        private Vector3d Position { get; set; }
+        private Vector3 Position { get; set; }
 
         internal StaticConstraint3d(Body3d body, int i) : base(body)
         {

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Common.Mathematics.LinearAlgebra;
 
 using PositionBasedDynamics.Bodies;
+using UnityEngine;
 
 namespace PositionBasedDynamics.Constraints
 {
@@ -26,7 +27,7 @@ namespace PositionBasedDynamics.Constraints
 
             CompressionStiffness = stiffness;
             StretchStiffness = stiffness;
-            RestLength = (Body.Positions[i0] - Body.Positions[i1]).Magnitude;
+            RestLength = (Body.Positions[i0] - Body.Positions[i1]).magnitude;
         }
 
         internal override void ConstrainPositions(double di)
@@ -35,19 +36,19 @@ namespace PositionBasedDynamics.Constraints
             double invMass = 1.0 / mass;
             double sum = mass * 2.0;
 
-            Vector3d n = Body.Predicted[i1] - Body.Predicted[i0];
-            double d = n.Magnitude;
+            Vector3 n = Body.Predicted[i1] - Body.Predicted[i0];
+            double d = n.magnitude;
             n.Normalize();
 
-            Vector3d corr;
+            Vector3 corr;
             if (d < RestLength)
-                corr = CompressionStiffness * n * (d - RestLength) * sum;
+                corr = (float)CompressionStiffness * n * (float)(d - RestLength) * (float)sum;
             else
-                corr = StretchStiffness * n * (d - RestLength) * sum;
+                corr = (float)StretchStiffness * n * (float)(d - RestLength) * (float)sum;
 
-            Body.Predicted[i0] += invMass * corr * di;
+            Body.Predicted[i0] += (float)invMass * corr * (float)di;
 
-            Body.Predicted[i1] -= invMass * corr * di;
+            Body.Predicted[i1] -= (float)invMass * corr * (float)di;
 
         }
 

@@ -1,0 +1,18 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel ESTIMATEPOSITIONS
+
+uint numParticles;
+float dt;
+RWStructuredBuffer<float4> Predicted;
+StructuredBuffer<float4> Velocities;
+StructuredBuffer<float4> Positions;
+
+
+[numthreads(32,1,1)]
+void ESTIMATEPOSITIONS(uint3 id : SV_DispatchThreadID)
+{
+    uint index = id.x;
+    if(index>=numParticles)
+        return;
+    Predicted[index] = Positions[index] + dt * Velocities[index];
+}

@@ -6,14 +6,14 @@ using Common.Mathematics.LinearAlgebra;
 
 using PositionBasedDynamics.Collisions;
 using PositionBasedDynamics.Sources;
-
+using UnityEngine;
 namespace PositionBasedDynamics.Bodies.Fluids
 {
 
     public class FluidBoundary3d
     {
 
-        public Vector3d[] Positions { get; private set; }
+        public Vector3[] Positions { get; private set; }
 
         public double[] Psi { get; private set; } 
 
@@ -38,12 +38,12 @@ namespace PositionBasedDynamics.Bodies.Fluids
         {
             NumParticles = source.NumParticles;
 
-            Positions = new Vector3d[NumParticles];
+            Positions = new Vector3[NumParticles];
   
             for (int i = 0; i < NumParticles; i++)
             {
                 Vector4d pos = RTS * source.Positions[i].xyz1;
-                Positions[i] = new Vector3d(pos.x, pos.y, pos.z);
+                Positions[i] = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
             }
 
         }
@@ -71,7 +71,7 @@ namespace PositionBasedDynamics.Bodies.Fluids
                 {
                     int neighborIndex = neighbors[i, j];
 
-                    Vector3d p = Positions[i] - Positions[neighborIndex];
+                    Vector3 p = Positions[i] - Positions[neighborIndex];
 
                     delta += kernel.W(p.x, p.y, p.z);
                 }

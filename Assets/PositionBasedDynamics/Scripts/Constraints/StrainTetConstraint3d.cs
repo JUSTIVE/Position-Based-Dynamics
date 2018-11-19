@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-
+using Common.Unity.Mathematics;
 using Common.Mathematics.LinearAlgebra;
 
 using PositionBasedDynamics.Bodies;
-
+using UnityEngine;
 namespace PositionBasedDynamics.Constraints
 {
 
@@ -21,7 +21,7 @@ namespace PositionBasedDynamics.Constraints
 
         private double Stiffness;
 
-        private Vector3d[] Correction;
+        private Vector3[] Correction;
 
         internal StrainTetConstraint3d(Body3d body, int p0, int p1, int p2, int p3, double stiffness) : base(body)
         {
@@ -35,18 +35,18 @@ namespace PositionBasedDynamics.Constraints
             NormalizeStretch = false;
             NormalizeShear = false;
 
-            Correction = new Vector3d[4];
+            Correction = new Vector3[4];
 
-            Vector3d x0 = body.Positions[P0];
-            Vector3d x1 = body.Positions[P1];
-            Vector3d x2 = body.Positions[P2];
-            Vector3d x3 = body.Positions[P3];
+            Vector3 x0 = body.Positions[P0];
+            Vector3 x1 = body.Positions[P1];
+            Vector3 x2 = body.Positions[P2];
+            Vector3 x3 = body.Positions[P3];
 
             Matrix3x3d restMatrix = new Matrix3x3d();
 
-            restMatrix.SetColumn(0, x1 - x0);
-            restMatrix.SetColumn(1, x2 - x0);
-            restMatrix.SetColumn(2, x3 - x0);
+            restMatrix.SetColumn(0, MathConverter.ToVector3d(x1 - x0));
+            restMatrix.SetColumn(1, MathConverter.ToVector3d(x2 - x0));
+            restMatrix.SetColumn(2, MathConverter.ToVector3d(x3 - x0));
 
             InvRestMatrix = restMatrix.Inverse;
 
@@ -55,10 +55,10 @@ namespace PositionBasedDynamics.Constraints
         internal override void ConstrainPositions(double di)
         {
 
-            Vector3d x0 = Body.Predicted[P0];
-            Vector3d x1 = Body.Predicted[P1];
-            Vector3d x2 = Body.Predicted[P2];
-            Vector3d x3 = Body.Predicted[P3];
+            Vector3 x0 = Body.Predicted[P0];
+            Vector3 x1 = Body.Predicted[P1];
+            Vector3 x2 = Body.Predicted[P2];
+            Vector3 x3 = Body.Predicted[P3];
 
             double invMass = 1.0 / Body.ParticleMass;
 
@@ -66,28 +66,28 @@ namespace PositionBasedDynamics.Constraints
 
             if (res)
             {
-                Body.Predicted[P0] += Correction[0] * di;
-                Body.Predicted[P1] += Correction[1] * di;
-                Body.Predicted[P2] += Correction[2] * di;
-                Body.Predicted[P3] += Correction[3] * di;
+                Body.Predicted[P0] += Correction[0] * (float)di;
+                Body.Predicted[P1] += Correction[1] * (float)di;
+                Body.Predicted[P2] += Correction[2] * (float)di;
+                Body.Predicted[P3] += Correction[3] * (float)di;
             }
 
         }
 
-        private bool SolveConstraint(Vector3d p0, Vector3d p1, Vector3d p2, Vector3d p3, double invMass)
+        private bool SolveConstraint(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, double invMass)
         {
 
             double eps = 1e-9;
 
-            Correction[0] = Vector3d.Zero;
-            Correction[1] = Vector3d.Zero;
-            Correction[2] = Vector3d.Zero;
-            Correction[3] = Vector3d.Zero;
+            Correction[0] = Vector3.zero;
+            Correction[1] = Vector3.zero;
+            Correction[2] = Vector3.zero;
+            Correction[3] = Vector3.zero;
 
-            Vector3d[] c = new Vector3d[3];
-            c[0] = InvRestMatrix.GetColumn(0);
-            c[1] = InvRestMatrix.GetColumn(1);
-            c[2] = InvRestMatrix.GetColumn(2);
+            Vector3[] c = new Vector3[3];
+            c[0] = MathConverter.ToVector3(InvRestMatrix.GetColumn(0));
+            c[1] = MathConverter.ToVector3(InvRestMatrix.GetColumn(1));
+            c[2] = MathConverter.ToVector3(InvRestMatrix.GetColumn(2));
 
             for (int i = 0; i < 3; i++)
             {
@@ -101,34 +101,34 @@ namespace PositionBasedDynamics.Constraints
                     //P.col(2) = p3 - p0;
 
                     // Gauss - Seidel
-                    P.SetColumn(0, (p1 + Correction[1]) - (p0 + Correction[0])); 
-                    P.SetColumn(1, (p2 + Correction[2]) - (p0 + Correction[0]));
-                    P.SetColumn(2, (p3 + Correction[3]) - (p0 + Correction[0]));
+                    P.SetColumn(0, MathConverter.ToVector3d((p1 + Correction[1]) - (p0 + Correction[0]))); 
+                    P.SetColumn(1, MathConverter.ToVector3d((p2 + Correction[2]) - (p0 + Correction[0])));
+                    P.SetColumn(2, MathConverter.ToVector3d((p3 + Correction[3]) - (p0 + Correction[0])));
 
-                    Vector3d fi = P * c[i];
-                    Vector3d fj = P * c[j];
+                    Vector3 fi = MathConverter.ToVector3(P * MathConverter.ToVector3d(c[i]));
+                    Vector3 fj = MathConverter.ToVector3(P * MathConverter.ToVector3d(c[j]));
 
-                    double Sij = Vector3d.Dot(fi, fj);
+                    double Sij = Vector3.Dot(fi, fj);
 
                     double wi = 0.0, wj = 0.0, s1 = 0.0, s3 = 0.0;
                     if (NormalizeShear && i != j)
                     {
-                        wi = fi.Magnitude;
-                        wj = fj.Magnitude;
-                        s1 = 1.0 / (wi * wj);
+                        wi = fi.magnitude;
+                        wj = fj.magnitude;
+                        s1 = 1.0f / (wi * wj);
                         s3 = s1 * s1 * s1;
                     }
 
-                    Vector3d[] d = new Vector3d[4];
-                    d[0] = new Vector3d(0.0, 0.0, 0.0);
+                    Vector3[] d = new Vector3[4];
+                    d[0] = Vector3.zero;
 
                     for (int k = 0; k < 3; k++)
                     {
-                        d[k + 1] = fj * InvRestMatrix[k, i] + fi * InvRestMatrix[k, j];
+                        d[k + 1] = fj * (float)InvRestMatrix[k, i] + fi * (float)InvRestMatrix[k, j];
 
                         if (NormalizeShear && i != j)
                         {
-                            d[k + 1] = s1 * d[k + 1] - Sij * s3 * (wj * wj * fi * InvRestMatrix[k, i] + wi * wi * fj * InvRestMatrix[k, j]);
+                            d[k + 1] = (float)s1 * d[k + 1] - (float)Sij * (float)s3 * ((float)(wj * wj) * fi * (float)InvRestMatrix[k, i] + (float)(wi * wi) * fj * (float)InvRestMatrix[k, j]);
                         }
 
                         d[0] -= d[k + 1];
@@ -137,7 +137,7 @@ namespace PositionBasedDynamics.Constraints
                     if (NormalizeShear && i != j)
                         Sij *= s1;
 
-                    double lambda = (d[0].SqrMagnitude + d[1].SqrMagnitude + d[2].SqrMagnitude + d[3].SqrMagnitude) * invMass;
+                    double lambda = (d[0].sqrMagnitude + d[1].sqrMagnitude + d[2].sqrMagnitude + d[3].sqrMagnitude) * invMass;
 
                     if (Math.Abs(lambda) < eps) continue;
 
@@ -160,10 +160,10 @@ namespace PositionBasedDynamics.Constraints
                         lambda = Sij / lambda * Stiffness;
                     }
 
-                    Correction[0] -= lambda * invMass * d[0];
-                    Correction[1] -= lambda * invMass * d[1];
-                    Correction[2] -= lambda * invMass * d[2];
-                    Correction[3] -= lambda * invMass * d[3];
+                    Correction[0] -= (float)lambda * (float)invMass * d[0];
+                    Correction[1] -= (float)lambda * (float)invMass * d[1];
+                    Correction[2] -= (float)lambda * (float)invMass * d[2];
+                    Correction[3] -= (float)lambda * (float)invMass * d[3];
                 }
             }
 

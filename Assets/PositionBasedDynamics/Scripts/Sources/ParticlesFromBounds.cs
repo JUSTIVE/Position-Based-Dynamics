@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 
+using Common.Unity.Mathematics;
 using Common.Mathematics.LinearAlgebra;
 using Common.Geometry.Shapes;
-
+using UnityEngine;
 namespace PositionBasedDynamics.Sources
 {
-
     public class ParticlesFromBounds : ParticleSource
     {
 
@@ -66,13 +66,13 @@ namespace PositionBasedDynamics.Sources
                 {
                     for (int x = 0; x < numX; x++)
                     {
-                        Vector3d pos = new Vector3d();
-                        pos.x = Diameter * x + Bounds.Min.x + Spacing;
-                        pos.y = Diameter * y + Bounds.Min.y + Spacing;
-                        pos.z = Diameter * z + Bounds.Min.z + Spacing;
+                        Vector3 pos = new Vector3();
+                        pos.x = (float)Diameter * x + Bounds.Min.x + (float)Spacing;
+                        pos.y = (float)Diameter * y + Bounds.Min.y + (float)Spacing;
+                        pos.z = (float)Diameter * z + Bounds.Min.z + (float)Spacing;
 
                         if(!exclusion.Contains(pos))
-                            Positions.Add(pos);
+                            Positions.Add(MathConverter.ToVector3d(pos));
 
                     }
                 }

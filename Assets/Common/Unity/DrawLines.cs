@@ -63,14 +63,14 @@ namespace Common.Unity.Drawing
             DrawVerticesAsLines(camera, color, verts, m_cube);
         }
 
-        public static void DrawVertices(LINE_MODE mode, Camera camera, Color color, IList<Vector4d> vertices, IList<int> indices, Matrix4x4d localToWorld)
+        public static void DrawVertices(LINE_MODE mode, Camera camera, Color color, Vector4[] vertices, IList<int> indices, Matrix4x4 localToWorld)
         {
             if (camera == null || vertices == null || indices == null) return;
 
-            int count = vertices.Count;
+            int count = vertices.Length;
             IList<Vector4> verts = Vertices(count);
             for (int i = 0; i < count; i++)
-                verts[i] = MathConverter.ToVector4(localToWorld * vertices[i]);
+                verts[i] = localToWorld * vertices[i];
 
             switch (mode)
             {

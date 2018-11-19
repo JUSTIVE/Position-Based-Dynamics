@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Common.Mathematics.LinearAlgebra;
 
 using PositionBasedDynamics.Bodies;
-
+using UnityEngine;
 namespace PositionBasedDynamics.Collisions
 {
 
@@ -15,11 +15,11 @@ namespace PositionBasedDynamics.Collisions
 
         private int i0;
 
-        private Vector3d Normal;
+        private Vector3 Normal;
 
         private double Distance;
 
-        internal BodyPlaneContact3d(Body3d body0, int i0, Vector3d normal, double dist)
+        internal BodyPlaneContact3d(Body3d body0, int i0, Vector3 normal, double dist)
         {
             Body0 = body0;
             this.i0 = i0;
@@ -30,11 +30,11 @@ namespace PositionBasedDynamics.Collisions
 
         internal override void ResolveContact(double di)
         {
-            double d = Vector3d.Dot(Normal, Body0.Predicted[i0]) + Distance - Body0.ParticleRadius;
+            double d = Vector3.Dot(Normal, Body0.Predicted[i0]) + Distance - Body0.ParticleRadius;
 
             if (d < 0.0)
             {
-                Vector3d delta = Normal * -d * di;
+                Vector3 delta = Normal * (float)-d * (float)di;
                 Body0.Positions[i0] += delta;
                 Body0.Predicted[i0] += delta;
             }

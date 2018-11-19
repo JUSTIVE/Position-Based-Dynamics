@@ -1,0 +1,19 @@
+﻿#pragma kernel APPLYEXTERNALFORCE_1
+
+uint numParticles;
+float damping;
+float dt;
+float gravity;
+
+RWStructuredBuffer<float3> Velocities;
+
+[numthreads(32,1,1)]
+void APPLYEXTERNALFORCE_1(uint3 id : SV_DispatchThreadID)
+{
+    uint index = id.x;
+    if(index>=numParticles)
+        return;
+    Velocities[index] -= (Velocities[index] * damping * dt);
+    Velocities[index].y += dt * gravity;
+}
+

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using Common.Mathematics.LinearAlgebra;
-
+using UnityEngine;
 namespace PositionBasedDynamics.Collisions
 {
 
@@ -86,7 +86,7 @@ namespace PositionBasedDynamics.Collisions
             return (int)(v * InvCellSize + 32768.1) - 32768;
         }
 
-        void Floor(Vector3d v, out int pos1, out int pos2, out int pos3)
+        void Floor(Vector3 v, out int pos1, out int pos2, out int pos3)
         {
             pos1 = (int)(v.x * InvCellSize + 32768.1) - 32768;
             pos2 = (int)(v.y * InvCellSize + 32768.1) - 32768;
@@ -101,7 +101,7 @@ namespace PositionBasedDynamics.Collisions
             return p1 + p2 + p3;
         }
 
-        int Hash(Vector3d particle)
+        int Hash(Vector3 particle)
         {
             int x = (int)(particle.x * InvCellSize + 32768.1) - 32768 + 1;
             int y = (int)(particle.y * InvCellSize + 32768.1) - 32768 + 1;
@@ -113,7 +113,7 @@ namespace PositionBasedDynamics.Collisions
             return p1 + p2 + p3;
         }
 
-        void AddToGrid(int i, Vector3d particle)
+        void AddToGrid(int i, Vector3 particle)
         {
 
             int cellPos = Hash(particle);
@@ -136,7 +136,7 @@ namespace PositionBasedDynamics.Collisions
             entry.Indices.Add(i);
         }
 
-        public void NeighborhoodSearch(Vector3d[] particles)
+        public void NeighborhoodSearch(Vector3[] particles)
         {
 
             if (particles.Length > NumParticles)
@@ -153,7 +153,7 @@ namespace PositionBasedDynamics.Collisions
             {
                 NumNeighbors[i] = 0;
 
-                Vector3d p0 = particles[i];
+                Vector3 p0 = particles[i];
 
                 int cellPos1, cellPos2, cellPos3;
                 Floor(p0, out cellPos1, out cellPos2, out cellPos3);
@@ -195,7 +195,7 @@ namespace PositionBasedDynamics.Collisions
             //end of function
         }
 
-        public void NeighborhoodSearch(Vector3d[] particles, Vector3d[] boundary)
+        public void NeighborhoodSearch(Vector3[] particles, Vector3[] boundary)
         {
 
             if (particles.Length > NumParticles)
@@ -216,7 +216,7 @@ namespace PositionBasedDynamics.Collisions
 
             for (int i = 0; i < NumParticles; i++)
             {
-                Vector3d p0 = particles[i];
+                Vector3 p0 = particles[i];
                 NumNeighbors[i] = 0;
 
                 int cellPos1, cellPos2, cellPos3;

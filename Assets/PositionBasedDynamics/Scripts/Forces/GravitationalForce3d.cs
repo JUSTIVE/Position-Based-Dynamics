@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using Common.Unity.Mathematics;
 using Common.Mathematics.LinearAlgebra;
 
 using PositionBasedDynamics.Bodies;
@@ -28,7 +28,7 @@ namespace PositionBasedDynamics.Forces
             int len = body.NumParticles;
             for (int i = 0; i < len; i++)
             {
-                body.Velocities[i] += dt * Gravity;
+                body.Velocities[i] += (float)dt * MathConverter.ToVector3(Gravity);
             }
 
         }

@@ -1,0 +1,14 @@
+﻿#pragma kernel UPDATEPOSITION
+
+uint numParticles;
+RWStructuredBuffer<float3> Predicted;
+RWStructuredBuffer<float3> Positions;
+
+[numthreads(32,1,1)]
+void UPDATEPOSITION(uint3 id : SV_DispatchThreadID)
+{
+    uint index = id.x;
+    if(index>numParticles)
+        return;
+    Positions[index] = Predicted[index];
+}

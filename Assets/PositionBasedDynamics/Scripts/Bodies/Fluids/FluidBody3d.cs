@@ -7,6 +7,7 @@ using Common.Mathematics.LinearAlgebra;
 using PositionBasedDynamics.Collisions;
 using PositionBasedDynamics.Sources;
 using PositionBasedDynamics.Constraints;
+using UnityEngine;
 
 namespace PositionBasedDynamics.Bodies.Fluids
 {
@@ -61,11 +62,11 @@ namespace PositionBasedDynamics.Bodies.Fluids
             }
         }
 
-        public void RandomizePositionOrder(Random rnd)
+        public void RandomizePositionOrder(System.Random rnd)
         {
             for(int i = 0; i < NumParticles; i++)
             {
-                Vector3d tmp = Positions[i];
+                Vector3 tmp = Positions[i];
 
                 int idx = rnd.Next(0, NumParticles - 1);
                 Positions[i] = Positions[idx];
@@ -87,7 +88,7 @@ namespace PositionBasedDynamics.Bodies.Fluids
             {
                 //Viscosity for particle Pi. Modifies the velocity.
                 //Vi = Vi + c * SUMj Vij * W(Pi - Pj, h)
-                Vector3d pi = Predicted[i];
+                Vector3 pi = Predicted[i];
 
                 for (int j = 0; j < numNeighbors[i]; j++)
                 {
@@ -95,10 +96,10 @@ namespace PositionBasedDynamics.Bodies.Fluids
                     if (neighborIndex < NumParticles) // Test if fluid particle
                     {
                         double invDensity = 1.0 / Densities[neighborIndex];
-                        Vector3d pn = Predicted[neighborIndex];
+                        Vector3 pn = Predicted[neighborIndex];
 
                         double k = Kernel.W(pi.x - pn.x, pi.y - pn.y, pi.z - pn.z) * viscosityMulMass * invDensity;
-                        Velocities[i] -= k * (Velocities[i] - Velocities[neighborIndex]);
+                        Velocities[i] -= (float)k * (Velocities[i] - Velocities[neighborIndex]);
                     }
                 }
             }
@@ -111,7 +112,7 @@ namespace PositionBasedDynamics.Bodies.Fluids
             for (int i = 0; i < NumParticles; i++)
             {
                 Vector4d pos = RTS * source.Positions[i].xyz1;
-                Positions[i] = new Vector3d(pos.x, pos.y, pos.z);
+                Positions[i] = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
                 Predicted[i] = Positions[i];
             }
 

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 
 using Common.Mathematics.LinearAlgebra;
-
+using Common.Unity.Mathematics;
 using PositionBasedDynamics.Bodies;
-
+using UnityEngine;
 namespace PositionBasedDynamics.Constraints
 {
     public class FEMTetConstraint3d : Constraint3d
@@ -22,7 +22,7 @@ namespace PositionBasedDynamics.Constraints
 
         private double RestVolume;
 
-        private Vector3d[] Correction;
+        private Vector3[] Correction;
 
         internal FEMTetConstraint3d(Body3d body, int p0, int p1, int p2, int p3, double youngsModulus) : base(body)
         {
@@ -34,20 +34,20 @@ namespace PositionBasedDynamics.Constraints
 
             YoungsModulus = youngsModulus;
             PoissonRatio = 0.3;
-            Correction = new Vector3d[4];
+            Correction = new Vector3[4];
 
-            Vector3d x0 = Body.Positions[P0];
-            Vector3d x1 = Body.Positions[P1];
-            Vector3d x2 = Body.Positions[P2];
-            Vector3d x3 = Body.Positions[P3];
+            Vector3 x0 = Body.Positions[P0];
+            Vector3 x1 = Body.Positions[P1];
+            Vector3 x2 = Body.Positions[P2];
+            Vector3 x3 = Body.Positions[P3];
 
-            RestVolume = Math.Abs((1.0f / 6.0) * Vector3d.Dot(x3 - x0, Vector3d.Cross(x2 - x0, x1 - x0)));
+            RestVolume = Math.Abs((1.0f / 6.0) * Vector3.Dot(x3 - x0, Vector3.Cross(x2 - x0, x1 - x0)));
 
             Matrix3x3d restMatrix = new Matrix3x3d();
 
-            restMatrix.SetColumn(0, x0 - x3);
-            restMatrix.SetColumn(1, x1 - x3);
-            restMatrix.SetColumn(2, x2 - x3);
+            restMatrix.SetColumn(0, MathConverter.ToVector3d(x0 - x3));
+            restMatrix.SetColumn(1, MathConverter.ToVector3d(x1 - x3));
+            restMatrix.SetColumn(2, MathConverter.ToVector3d(x2 - x3));
 
             InvRestMatrix = restMatrix.Inverse;
 
@@ -56,15 +56,15 @@ namespace PositionBasedDynamics.Constraints
         internal override void ConstrainPositions(double di)
         {
 
-            Vector3d x0 = Body.Predicted[P0];
-            Vector3d x1 = Body.Predicted[P1];
-            Vector3d x2 = Body.Predicted[P2];
-            Vector3d x3 = Body.Predicted[P3];
+            Vector3 x0 = Body.Predicted[P0];
+            Vector3 x1 = Body.Predicted[P1];
+            Vector3 x2 = Body.Predicted[P2];
+            Vector3 x3 = Body.Predicted[P3];
 
             double mass = Body.ParticleMass;
             double invMass = 1.0 / mass;
 
-            double currentVolume = -(1.0f / 6.0) * Vector3d.Dot(x3 - x0, Vector3d.Cross(x2 - x0, x1 - x0));
+            double currentVolume = -(1.0f / 6.0) * Vector3.Dot(x3 - x0, Vector3.Cross(x2 - x0, x1 - x0));
 
             HandleInversion = false;
             if (currentVolume / RestVolume < 0.2) // Only 20% of initial volume left
@@ -74,34 +74,34 @@ namespace PositionBasedDynamics.Constraints
 
             if (res)
             {
-                Body.Predicted[P0] += Correction[0] * di;
+                Body.Predicted[P0] += Correction[0] * (float)di;
 
-                Body.Predicted[P1] += Correction[1] * di;
+                Body.Predicted[P1] += Correction[1] * (float)di;
 
-                Body.Predicted[P2] += Correction[2] * di;
+                Body.Predicted[P2] += Correction[2] * (float)di;
 
-                Body.Predicted[P3] += Correction[3] * di;
+                Body.Predicted[P3] += Correction[3] * (float)di;
             }
 
         }
 
-        private bool SolveConstraint(Vector3d p0, Vector3d p1, Vector3d p2, Vector3d p3, double invMass)
+        private bool SolveConstraint(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, double invMass)
         {
             double eps = 1e-6;
 
-            Correction[0] = Vector3d.Zero;
-            Correction[1] = Vector3d.Zero;
-            Correction[2] = Vector3d.Zero;
-            Correction[3] = Vector3d.Zero;
+            Correction[0] = Vector3.zero;
+            Correction[1] = Vector3.zero;
+            Correction[2] = Vector3.zero;
+            Correction[3] = Vector3.zero;
 
             //if (youngsModulus <= 0.0f)
             //   return true;
 
             double C = 0.0f;
-            Vector3d[] gradC = new Vector3d[4];
+            Vector3[] gradC = new Vector3[4];
             Matrix3x3d epsilon = new Matrix3x3d();
             Matrix3x3d sigma = new Matrix3x3d();
-            double volume = Vector3d.Dot(p3 - p0, Vector3d.Cross(p1 - p0, p2 - p0)) / 6.0;
+            double volume = Vector3.Dot(p3 - p0, Vector3.Cross(p1 - p0, p2 - p0)) / 6.0f;
 
             double mu = YoungsModulus / 2.0 / (1.0 + PoissonRatio);
             double lambda = YoungsModulus * PoissonRatio / (1.0 + PoissonRatio) / (1.0 - 2.0 * PoissonRatio);
@@ -117,7 +117,7 @@ namespace PositionBasedDynamics.Constraints
                 ComputeGradCGreen(sigma, gradC);
             }
 
-            double sumNormGradC = gradC[0].SqrMagnitude + gradC[1].SqrMagnitude + gradC[2].SqrMagnitude + gradC[3].SqrMagnitude;
+            double sumNormGradC = gradC[0].sqrMagnitude + gradC[1].sqrMagnitude + gradC[2].sqrMagnitude + gradC[3].sqrMagnitude;
             sumNormGradC *= invMass;
 
             if (sumNormGradC < eps)
@@ -126,42 +126,42 @@ namespace PositionBasedDynamics.Constraints
             // compute scaling factor
             double s = C / sumNormGradC;
 
-            Correction[0] = -s * invMass * gradC[0];
-            Correction[1] = -s * invMass * gradC[1];
-            Correction[2] = -s * invMass * gradC[2];
-            Correction[3] = -s * invMass * gradC[3];
+            Correction[0] = (float)-s * (float)invMass * gradC[0];
+            Correction[1] = (float)-s * (float)invMass * gradC[1];
+            Correction[2] = (float)-s * (float)invMass * gradC[2];
+            Correction[3] = (float)-s * (float)invMass * gradC[3];
 
             return true;
         }
 
-        private void ComputeGradCGreen(Matrix3x3d sigma, Vector3d[] J)
+        private void ComputeGradCGreen(Matrix3x3d sigma, Vector3[] J)
         {
 
             Matrix3x3d T = InvRestMatrix.Transpose;
             Matrix3x3d H = sigma * T * RestVolume;
 
-            J[0].x = H.m00;
-            J[1].x = H.m01;
-            J[2].x = H.m02;
+            J[0].x = (float)H.m00;
+            J[1].x = (float)H.m01;
+            J[2].x = (float)H.m02;
 
-            J[0].y = H.m10;
-            J[1].y = H.m11;
-            J[2].y = H.m12;
+            J[0].y = (float)H.m10;
+            J[1].y = (float)H.m11;
+            J[2].y = (float)H.m12;
 
-            J[0].z = H.m20;
-            J[1].z = H.m21;
-            J[2].z = H.m22;
+            J[0].z = (float)H.m20;
+            J[1].z = (float)H.m21;
+            J[2].z = (float)H.m22;
 
             J[3] = (J[0] * -1.0f) - J[1] - J[2];
         }
 
-        private void ComputeGreenStrainAndPiolaStress(Vector3d x1, Vector3d x2, Vector3d x3, Vector3d x4, double mu, double lambda, ref Matrix3x3d epsilon, ref Matrix3x3d sigma, ref double energy)
+        private void ComputeGreenStrainAndPiolaStress(Vector3 x1, Vector3 x2, Vector3 x3, Vector3 x4, double mu, double lambda, ref Matrix3x3d epsilon, ref Matrix3x3d sigma, ref double energy)
         {
             // Determine \partial x/\partial m_i
             Matrix3x3d F = new Matrix3x3d();
-            Vector3d p14 = x1 - x4;
-            Vector3d p24 = x2 - x4;
-            Vector3d p34 = x3 - x4;
+            Vector3 p14 = x1 - x4;
+            Vector3 p24 = x2 - x4;
+            Vector3 p34 = x3 - x4;
 
             F.m00 = p14.x * InvRestMatrix.m00 + p24.x * InvRestMatrix.m10 + p34.x * InvRestMatrix.m20;
             F.m01 = p14.x * InvRestMatrix.m01 + p24.x * InvRestMatrix.m11 + p34.x * InvRestMatrix.m21;
@@ -205,13 +205,13 @@ namespace PositionBasedDynamics.Constraints
             energy = RestVolume * psi;
         }
 
-        private void ComputeGreenStrainAndPiolaStressInversion(Vector3d x1, Vector3d x2, Vector3d x3, Vector3d x4, double mu, double lambda, ref Matrix3x3d epsilon, ref Matrix3x3d sigma, ref double energy)
+        private void ComputeGreenStrainAndPiolaStressInversion(Vector3 x1, Vector3 x2, Vector3 x3, Vector3 x4, double mu, double lambda, ref Matrix3x3d epsilon, ref Matrix3x3d sigma, ref double energy)
         {
             // Determine \partial x/\partial m_i
             Matrix3x3d F = new Matrix3x3d();
-            Vector3d p14 = x1 - x4;
-            Vector3d p24 = x2 - x4;
-            Vector3d p34 = x3 - x4;
+            Vector3 p14 = x1 - x4;
+            Vector3 p24 = x2 - x4;
+            Vector3 p34 = x3 - x4;
 
             F.m00 = p14.x * InvRestMatrix.m00 + p24.x * InvRestMatrix.m10 + p34.x * InvRestMatrix.m20;
             F.m01 = p14.x * InvRestMatrix.m01 + p24.x * InvRestMatrix.m11 + p34.x * InvRestMatrix.m21;

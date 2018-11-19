@@ -17,6 +17,25 @@ namespace PositionBasedDynamics
 {
     public class ClothBodyDemo : MonoBehaviour
     {
+        [Header("Variables")]
+        public double stretchStiffness = 0.25;
+        public double bendStiffness = 0.5;
+        public double mass = 1.0;
+        public double radius = 0.125;
+        public double width = 5.0;
+        public double height = 4.0;
+        public double depth = 5.0;
+        public bool GPUmode = true;
+
+        [Header("ComputeShaders")]
+        public ComputeShader ApplyExternalForces;
+        public ComputeShader EstimatePositions;
+        public ComputeShader ResolveCollisions;
+        public ComputeShader ConstraintPositions;
+        public ComputeShader UpdateVelocities;
+        public ComputeShader ConstraintVelocities;
+        public ComputeShader UpdatePositions;
+        
 
         private const double timeStep = 1.0 / 60.0;
 
@@ -36,15 +55,7 @@ namespace PositionBasedDynamics
 
         void Start()
         {
-
-            double stretchStiffness = 0.25;
-            double bendStiffness = 0.5;
-            double mass = 1.0;
-            double radius = 0.125;
-
-            double width = 5.0;
-            double height = 4.0;
-            double depth = 5.0;
+            
 
             TrianglesFromGrid source = new TrianglesFromGrid(radius, width, depth);
 
@@ -55,8 +66,12 @@ namespace PositionBasedDynamics
             Body = new ClothBody3d(source, radius, mass, stretchStiffness, bendStiffness, RT);
             Body.Dampning = 1.0;
 
-            Vector3d min = new Vector3d(-width / 2 - 0.1, height - 0.1, -depth / 2 - 0.1);
-            Vector3d max = new Vector3d(width / 2 + 0.1, height + 0.1, -depth / 2 + 0.1);
+            Vector3 min = new Vector3((float)(-width / 2 - 0.1),
+                (float)(height - 0.1),
+                (float)(-depth / 2 - 0.1));
+            Vector3 max = new Vector3((float)(width / 2 + 0.1),
+                (float)(height + 0.1),
+                (float)(-depth / 2 + 0.1));
             StaticBounds = new Box3d(min, max);
 
             Body.MarkAsStatic(StaticBounds);
@@ -64,10 +79,20 @@ namespace PositionBasedDynamics
             Solver = new Solver3d();
             Solver.AddBody(Body);
             Solver.AddForce(new GravitationalForce3d());
-            Solver.AddCollision(new PlanarCollision3d(Vector3d.UnitY, 0));
+            //Solver.AddCollision(new PlanarCollision3d(Vector3.up, 0));
             Solver.SolverIterations = 2;
             Solver.CollisionIterations = 2;
             Solver.SleepThreshold = 1;
+            //setting compute shader of solver
+            Solver.ApplyExternalForcesShader = ApplyExternalForces;
+            Solver.EstimatePositionsShader = EstimatePositions;
+            Solver.ResolveCollisionsShader = ResolveCollisions;
+            Solver.ConstraintPositionsShader = ConstraintPositions;
+            Solver.UpdateVelocitiesShader = UpdateVelocities;
+            Solver.ConstraintVelocitiesShader = ConstraintVelocities;
+            Solver.UpdatePositionsShader = UpdatePositions;
+            Solver.GPUmode = GPUmode;
+            Solver.init();
 
             CreateSpheres();
         }
@@ -85,7 +110,6 @@ namespace PositionBasedDynamics
 
         void OnDestroy()
         {
-
             if (Spheres != null)
             {
                 for (int i = 0; i < Spheres.Count; i++)
@@ -105,10 +129,12 @@ namespace PositionBasedDynamics
                 DrawLines.DrawGrid(camera, Color.white, min, max, 1, transform.localToWorldMatrix);
 
                 Matrix4x4d m = MathConverter.ToMatrix4x4d(transform.localToWorldMatrix);
-                DrawLines.DrawVertices(LINE_MODE.TRIANGLES, camera, Color.red, Body.Positions, Body.Indices, m);
+                Vector4[] Positions = new Vector4[Body.Positions.Length];
+                for (int i = 0; i < Positions.Length; i++)
+                    Positions[i] = Body.Positions[i];
+                DrawLines.DrawVertices(LINE_MODE.TRIANGLES, camera, Color.red, Positions, Body.Indices, MathConverter.ToMatrix4x4(m));
 
                 DrawLines.DrawBounds(camera, Color.green, StaticBounds, Matrix4x4d.Identity);
-
             }
         }
 
@@ -123,7 +149,7 @@ namespace PositionBasedDynamics
 
             for (int i = 0; i < numParticles; i++)
             {
-                Vector3 pos = MathConverter.ToVector3(Body.Positions[i]);
+                Vector3 pos = Body.Positions[i];
 
                 GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 sphere.transform.parent = transform;
@@ -143,8 +169,7 @@ namespace PositionBasedDynamics
             {
                 for (int i = 0; i < Spheres.Count; i++)
                 {
-                    Vector3d pos = Body.Positions[i];
-                    Spheres[i].transform.position = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
+                    Spheres[i].transform.position = Body.Positions[i];
                 }
             }
 

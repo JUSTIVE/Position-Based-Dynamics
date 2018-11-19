@@ -110,8 +110,8 @@ namespace PositionBasedDynamics
             OuterBounds = InnerBounds;
 
             int thickness = 1;
-            OuterBounds.Min -= new Vector3d(radius * 2 * thickness);
-            OuterBounds.Max += new Vector3d(radius * 2 * thickness);
+            OuterBounds.Min -= new Vector3((float)radius * 2 * thickness, (float)radius * 2 * thickness, (float)radius * 2 * thickness);
+            OuterBounds.Max += new Vector3((float)radius * 2 * thickness, (float)radius * 2 * thickness, (float)radius * 2 * thickness);
 
             ParticleSource source = new ParticlesFromBounds(radius, OuterBounds, InnerBounds);
 
@@ -122,7 +122,7 @@ namespace PositionBasedDynamics
 
             for (int i = 0; i < BoundarySpheres.Length; i++)
             {
-                Vector3d pos = Boundary.Positions[i];
+                Vector3 pos = Boundary.Positions[i];
 
                 GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 
@@ -161,7 +161,7 @@ namespace PositionBasedDynamics
 
             for (int i = 0; i < FluidSpheres.Length; i++)
             {
-                Vector3d pos = Body.Positions[i];
+                Vector3 pos = Body.Positions[i];
 
                 GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 sphere.transform.parent = transform;
@@ -183,7 +183,7 @@ namespace PositionBasedDynamics
             {
                 for (int i = 0; i < FluidSpheres.Length; i++)
                 {
-                    Vector3d pos = Body.Positions[i];
+                    Vector3 pos = Body.Positions[i];
                     FluidSpheres[i].transform.position = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
                 }
             }
@@ -194,7 +194,7 @@ namespace PositionBasedDynamics
                 {
                     BoundarySpheres[i].SetActive(drawBoundary);
 
-                    Vector3d pos = Boundary.Positions[i];
+                    Vector3 pos = Boundary.Positions[i];
                     BoundarySpheres[i].transform.position = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
                 }
             }

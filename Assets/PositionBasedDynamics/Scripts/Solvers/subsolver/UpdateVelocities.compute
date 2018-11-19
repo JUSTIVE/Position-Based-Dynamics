@@ -1,0 +1,21 @@
+﻿#pragma kernel UPDATEVELOCITIES
+
+float invDt;
+float threshold2;
+uint numParticles;
+StructuredBuffer<float3> Predicted;
+StructuredBuffer<float3> Positions;
+RWStructuredBuffer<float3> Velocities;
+
+[numthreads(32,1,1)]
+void UPDATEVELOCITIES(uint3 id : SV_DispatchThreadID)
+{
+	if(id.x>numParticles)
+        return;
+    float3 d = Predicted[id.x] - Positions[id.x];
+    Velocities[id.x] = d * invDt;
+    float m = length(Velocities[id.x]) * length(Velocities[id.x]);
+    if(m<threshold2)
+        Velocities[id.x] = float3(0, 0, 0);
+
+}
