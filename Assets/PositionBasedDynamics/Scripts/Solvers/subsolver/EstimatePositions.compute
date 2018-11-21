@@ -3,9 +3,9 @@
 
 uint numParticles;
 float dt;
-RWStructuredBuffer<float4> Predicted;
-StructuredBuffer<float4> Velocities;
-StructuredBuffer<float4> Positions;
+RWStructuredBuffer<float3> Predicted;
+StructuredBuffer<float3> Velocities;
+StructuredBuffer<float3> Positions;
 
 
 [numthreads(32,1,1)]

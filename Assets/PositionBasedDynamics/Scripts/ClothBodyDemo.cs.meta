@@ -1,10 +1,21 @@
 fileFormatVersion: 2
 guid: 7563beba5e6aa1b46a882be8756cc308
-timeCreated: 1491690023
-licenseType: Pro
+timeCreated: 1542645041
+licenseType: Free
 MonoImporter:
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - ApplyExternalForces: {fileID: 7200000, guid: bedf817534fa29c49bc79d36d124f940,
+      type: 3}
+  - EstimatePositions: {fileID: 7200000, guid: 3c88891f9b559524faf89788b458e327, type: 3}
+  - ResolveCollisions: {fileID: 7200000, guid: 89d53577c2a58df4f9214ee3e36e4982, type: 3}
+  - ConstraintPositions: {fileID: 7200000, guid: 3d8e00dfa7a2c8e48924b6c90e1c3181,
+      type: 3}
+  - UpdateVelocities: {fileID: 7200000, guid: 23d3b2eb339e07d40a5527dba4f1a756, type: 3}
+  - ConstraintVelocities: {fileID: 7200000, guid: 375fa3dedd057404790754b0afee03f3,
+      type: 3}
+  - UpdatePositions: {fileID: 7200000, guid: 0dbdbb4895bd02b4f9ec425a828cf5b8, type: 3}
+  - sphereMaterial: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
