@@ -102,7 +102,7 @@ namespace PositionBasedDynamics
             int iterations = 4;
             double dt = timeStep / iterations;
 
-            for (int i = 0; i < iterations; i++)
+            for (int i = 0; i < iterations; ++i)
                 Solver.StepPhysics(dt);
 
             UpdateSpheres();
