@@ -57,28 +57,20 @@ namespace PositionBasedDynamics.Bodies
         internal void ConstrainPositions(double di)
         {
             for (int i = 0; i < Constraints.Count; i++)
-            {
                 Constraints[i].ConstrainPositions(di);
-            }
 
             for (int i = 0; i < StaticConstraints.Count; i++)
-            {
                 StaticConstraints[i].ConstrainPositions(di);
-            }
         }
 
         internal void ConstrainVelocities()
         {
 
             for (int i = 0; i < Constraints.Count; i++)
-            {
                 Constraints[i].ConstrainVelocities();
-            }
 
             for (int i = 0; i < StaticConstraints.Count; i++)
-            {
                 StaticConstraints[i].ConstrainVelocities();
-            }
 
         }
 

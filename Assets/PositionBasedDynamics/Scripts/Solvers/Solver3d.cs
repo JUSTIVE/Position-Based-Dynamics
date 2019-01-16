@@ -183,9 +183,7 @@ namespace PositionBasedDynamics.Solvers
                 }
                 else { 
                     for (int i = 0; i < body.NumParticles; i++)
-                    {
                         body.Predicted[i] = body.Positions[i] + dt * body.Velocities[i];
-                    }
                 }
             }
         }
@@ -193,9 +191,7 @@ namespace PositionBasedDynamics.Solvers
         private void UpdateBounds()
         {
             for (int i = 0; i < Bodies.Count; i++)
-            {
                 Bodies[i].UpdateBounds();
-            }
         }
 
         private void ResolveCollisions()
@@ -203,19 +199,13 @@ namespace PositionBasedDynamics.Solvers
             List<CollisionContact3d> contacts = new List<CollisionContact3d>();
 
             for (int i = 0; i < Collisions.Count; i++)
-            {
                 Collisions[i].FindContacts(Bodies, contacts);
-            }
 
             double di = 1.0 / CollisionIterations;
 
             for(int i = 0; i < CollisionIterations; i++)
-            {
                 for (int j = 0; j < contacts.Count; j++)
-                {
                     contacts[j].ResolveContact(di);
-                }
-            }
         }
 
         private void ConstrainPositions()
@@ -223,12 +213,8 @@ namespace PositionBasedDynamics.Solvers
             double di = 1.0 / SolverIterations;
 
             for (int i = 0; i < SolverIterations; i++)
-            {
                 for (int j = 0; j < Bodies.Count; j++)
-                {
                     Bodies[j].ConstrainPositions(di);
-                }
-            }
         }
 
         private void UpdateVelocities(double dt)
@@ -274,13 +260,11 @@ namespace PositionBasedDynamics.Solvers
             }
         }
 
-        private void ConstrainVelocities()
-        {
-            for (int i = 0; i < Bodies.Count; i++)
-            {
-                Bodies[i].ConstrainVelocities();
-            }
-        }
+        //private void ConstrainVelocities()
+        //{
+        //    for (int i = 0; i < Bodies.Count; i++)
+        //        Bodies[i].ConstrainVelocities();
+        //}
 
         private void UpdatePositions()
         {
@@ -306,9 +290,7 @@ namespace PositionBasedDynamics.Solvers
                 else
                 {
                     for (int i = 0; i < body.NumParticles; i++)
-                    {
                         body.Positions[i] = body.Predicted[i];
-                    }
                 }
             }
         }
